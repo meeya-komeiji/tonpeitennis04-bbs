@@ -12,6 +12,7 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { sanitizeHtml } from './sanitize';
 
 export const DEFAULT_NAME = '名無しさん';
 
@@ -27,6 +28,7 @@ export type Post = {
   id: string;
   no: number;
   name: string;
+  /** 本文。リッチテキスト(HTML)。描画前に必ずサニタイズする */
   body: string;
   createdAt: Date | null;
 };
@@ -140,7 +142,8 @@ export async function createThread(input: {
 }): Promise<string> {
   const title = input.title.trim();
   const name = input.name.trim() || DEFAULT_NAME;
-  const body = input.body.trim();
+  // 本文はリッチテキスト(HTML)。保存時にもサニタイズして安全な装飾のみ残す
+  const body = sanitizeHtml(input.body);
 
   const threadRef = doc(collection(db, 'threads'));
   await runTransaction(db, async (tx) => {
@@ -167,7 +170,8 @@ export async function createPost(
   input: { name: string; body: string }
 ): Promise<number> {
   const name = input.name.trim() || DEFAULT_NAME;
-  const body = input.body.trim();
+  // 本文はリッチテキスト(HTML)。保存時にもサニタイズして安全な装飾のみ残す
+  const body = sanitizeHtml(input.body);
   const threadRef = doc(db, 'threads', threadId);
 
   return runTransaction(db, async (tx) => {

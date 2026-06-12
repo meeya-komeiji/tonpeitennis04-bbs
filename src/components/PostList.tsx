@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import { type Post } from '@/lib/db';
 import { formatDate } from '@/lib/format';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 /** スレッド内の投稿一覧（設計画像の「1：名前 日時 No.X ＋本文」形式） */
 export default function PostList({ posts }: { posts: Post[] }) {
@@ -34,9 +35,9 @@ export default function PostList({ posts }: { posts: Post[] }) {
               fontSize: 14,
               lineHeight: 1.7,
             }}
-          >
-            {post.body}
-          </Box>
+            // 本文はリッチテキスト(HTML)。描画時にサニタイズしてXSSを防ぐ
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.body) }}
+          />
         </Box>
       ))}
     </Box>

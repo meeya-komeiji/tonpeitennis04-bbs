@@ -6,7 +6,9 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import RichTextEditor from '@/components/RichTextEditor';
 import { createThread } from '@/lib/db';
+import { isHtmlEmpty } from '@/lib/sanitize';
 
 /** 新規スレッド作成フォーム */
 export default function NewThreadForm() {
@@ -22,7 +24,7 @@ export default function NewThreadForm() {
       setError('タイトルを入力してください');
       return;
     }
-    if (!body.trim()) {
+    if (isHtmlEmpty(body)) {
       setError('本文を入力してください');
       return;
     }
@@ -60,14 +62,11 @@ export default function NewThreadForm() {
         onChange={(e) => setTitle(e.target.value)}
         sx={{ bgcolor: '#fff', mb: 1 }}
       />
-      <TextField
-        fullWidth
-        multiline
-        minRows={6}
-        placeholder="本文"
+      <RichTextEditor
         value={body}
-        onChange={(e) => setBody(e.target.value)}
-        sx={{ bgcolor: '#fff', mb: 1 }}
+        onChange={setBody}
+        placeholder="本文"
+        minHeight={140}
       />
       {error && (
         <Box sx={{ color: '#cc0000', fontSize: 13, mb: 1 }}>{error}</Box>
