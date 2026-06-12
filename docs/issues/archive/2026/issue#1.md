@@ -47,18 +47,9 @@ notes:
 - 画像・絵文字の挿入
 
 ## 実走結果
-
-<!-- issue-close で追記 -->
-
----
-
-## 使い方
-
-### 開始
-
-/issue-run docs/issues/open/issue#1.md
-
-### 承認後
-
-確認OKです。
-/issue-close docs/issues/open/issue#1.md
+- completed_at: 2026-06-12T14:52:49.834Z
+- branch: feature/issue-1-rich-text-decoration
+- commit: e6c585e
+- commit_message: feat(post): 投稿フォームに文字装飾ツールバーを追加
+- verification_commands:
+  - npm run verify:issue
