@@ -8,7 +8,7 @@ if ! echo "$FILE" | grep -qE '\.(tsx?|ts)$' 2>/dev/null; then
   exit 0
 fi
 
-cd /home/meeya/dev/tatamiburoportal
+cd /home/meeya/dev/s17-bbs
 
 RESULT=$(npx tsc --noEmit 2>&1)
 ERROR_LINES=$(echo "$RESULT" | grep "error TS" | head -20)

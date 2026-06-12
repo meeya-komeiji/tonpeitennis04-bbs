@@ -161,6 +161,50 @@ npm run build && firebase deploy
 
 ---
 
+## Claude Code での開発フロー
+
+このリポジトリには、Claude Code（`claude.ai/code`）で開発を進めるためのカスタムスキルと自動チェックが組み込まれています。スキルはチャットで `/スキル名` と入力して呼び出します。
+
+### スキル一覧
+
+| コマンド | 用途 |
+|---|---|
+| `/issue-new` | 対話で要望を整理し、issue ファイルを `docs/issues/open/` に作成する |
+| `/issue-run <issueパス>` | issue を起点に、ブランチ切替・実装・検証・コミットまでを一連で実行する |
+| `/issue-close <issueパス>` | 承認後に実走結果を追記し、issue を `docs/issues/archive/` へ移動する |
+| `/clarify-plan <プランパス>` | 計画ドキュメントを読み込み、1問1答で要求仕様を詰める（実装はしない） |
+| `/check-build` | `tsc --noEmit` と webpack コンパイルでビルドが通るか確認し、エラーを修正する |
+
+### issue ベースの開発サイクル
+
+要望の発生から完了まで、次の流れで進めます。
+
+```
+/issue-new                                  # ① 要望を対話で整理し issue を作成
+        ↓  docs/issues/open/issue#N.md
+/issue-run docs/issues/open/issue#N.md      # ② ブランチ作成→実装→検証→コミット
+        ↓  動作を手動確認（manual_checks）
+確認OKです。                                  # ③ ユーザーが明示的に承認
+/issue-close docs/issues/open/issue#N.md     # ④ 実走結果を追記し archive へ移動
+```
+
+- `/issue-run` は `.claude/scripts/start-issue.mjs`（ブランチ切替）と `verify-issue.mjs`（検証）を内部で実行し、検証が通るまで修正を繰り返してから 1 回だけコミットします。
+- `/issue-close` はユーザーが会話内で明示承認している場合のみ実行され、`close-issue.mjs` で issue を archive に移します。
+- issue ファイルの frontmatter（`id` / `branch` / `commit_message` / `acceptance_criteria` など）が各スクリプトの入力になります。
+
+### ビルドチェック
+
+コード変更後は `/check-build` でコンパイルを確認できます。内部の手順:
+
+1. `npx tsc --noEmit` で TypeScript 型エラーを検出
+2. `PORT=3001 BROWSER=none CI=true npm start` で webpack コンパイル（`Module not found` など import / CSS のエラーを検出）
+
+### 自動型チェック（フック）
+
+`.ts` / `.tsx` を編集するたびに、PostToolUse フック（`.claude/scripts/post-edit-typecheck.sh`）が `tsc --noEmit` をバックグラウンド実行します。型エラーがあると、その内容が次の Claude の応答に自動で注入され、すぐ修正に移れます。設定は `.claude/settings.local.json` の `hooks` を参照してください。
+
+---
+
 ## Firestore セキュリティルールについて
 
 `firestore.rules` は認証なし前提で、**誰でも読み書き可能**ですが、最低限のバリデーション（必須項目・文字数制限）と、投稿の改ざん・削除の禁止を行っています。友人間の限定運用を想定したものなので、不特定多数への公開には向きません。必要に応じて認証の追加を検討してください。
