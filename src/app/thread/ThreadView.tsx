@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import Header from '@/components/Header';
 import Panel from '@/components/Panel';
 import PostList from '@/components/PostList';
-import PostForm from '@/components/PostForm';
+import PostForm, { type PostFormHandle } from '@/components/PostForm';
 import { fetchThread, fetchPosts, type Thread, type Post } from '@/lib/db';
 
 export default function ThreadView() {
@@ -19,6 +19,7 @@ export default function ThreadView() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const postFormRef = useRef<PostFormHandle>(null);
 
   const load = useCallback(async () => {
     if (!threadId) {
@@ -69,8 +70,17 @@ export default function ThreadView() {
               >
                 {thread.title}
               </Typography>
-              <PostList posts={posts} />
-              {threadId && <PostForm threadId={threadId} onPosted={load} />}
+              <PostList
+                posts={posts}
+                onReply={(no) => postFormRef.current?.insertAnchor(no)}
+              />
+              {threadId && (
+                <PostForm
+                  ref={postFormRef}
+                  threadId={threadId}
+                  onPosted={load}
+                />
+              )}
             </>
           )
         )}

@@ -1,10 +1,11 @@
 'use client';
 
+import { useRef } from 'react';
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import PostList from '@/components/PostList';
-import PostForm from '@/components/PostForm';
+import PostForm, { type PostFormHandle } from '@/components/PostForm';
 import { type ThreadPreview as ThreadPreviewData } from '@/lib/db';
 
 /** 1スレッド分のプレビュー（タイトル＋先頭投稿＋最新数件）。設計画像の本文付きパネル */
@@ -17,6 +18,8 @@ export default function ThreadPreview({
 }) {
   const { thread, posts, omittedAfterFirst } = preview;
   const href = `/thread?id=${thread.id}`;
+  const postFormRef = useRef<PostFormHandle>(null);
+  const handleReply = (no: number) => postFormRef.current?.insertAnchor(no);
 
   return (
     <Box>
@@ -36,14 +39,14 @@ export default function ThreadPreview({
 
       {omittedAfterFirst > 0 ? (
         <>
-          <PostList posts={posts.slice(0, 1)} />
+          <PostList posts={posts.slice(0, 1)} onReply={handleReply} />
           <Box sx={{ fontSize: 13, color: '#888', pl: 3, mb: 2 }}>
             （{omittedAfterFirst}件省略）
           </Box>
-          <PostList posts={posts.slice(1)} />
+          <PostList posts={posts.slice(1)} onReply={handleReply} />
         </>
       ) : (
-        <PostList posts={posts} />
+        <PostList posts={posts} onReply={handleReply} />
       )}
 
       <Box sx={{ textAlign: 'right' }}>
@@ -52,7 +55,7 @@ export default function ThreadPreview({
         </Link>
       </Box>
 
-      <PostForm threadId={thread.id} onPosted={onPosted} />
+      <PostForm ref={postFormRef} threadId={thread.id} onPosted={onPosted} />
     </Box>
   );
 }

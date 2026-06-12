@@ -12,16 +12,17 @@ acceptance_criteria:
   - 各レスのヘッダーに「返信」ボタン（リンク）が表示される
   - 「返信」を押すとコメント欄に `>>N`（Nはレス番号）が自動挿入され、入力欄にフォーカスが当たる
   - 投稿本文中の `>>N` が青系リンクとして表示される
-  - `>>N` リンクをクリックすると該当レス（id=post-N）へスクロールする
+  - "`>>N` リンクをクリックすると該当レス（id=post-N）へスクロールする"
   - アンカー付きで投稿した内容が保存・再読み込み後も維持される
 manual_checks:
   - 複数のレスに対して「返信」を押し、それぞれ正しいレス番号が挿入されること
   - 本文中に複数の `>>N` を含む投稿でも全てリンク化・スクロールできること
-  - 存在しないレス番号（例: >>999）でも表示が崩れないこと
+  - "存在しないレス番号（例: >>999）でも表示が崩れないこと"
   - アンカーを含まない通常の投稿が従来どおり表示されること
 notes:
   - Firestore のデータ構造変更は不要。アンカーは本文テキスト（>>N）として既存 body に保存する
-  - 「返信」クリックからフォームへの挿入は forwardRef + useImperativeHandle で PostForm に insertAnchor(no) を公開し、ThreadView で配線する
+  - 「返信」クリックからフォームへの挿入は forwardRef + useImperativeHandle で PostForm に
+    insertAnchor(no) を公開し、ThreadView で配線する
   - 挿入位置はコメント欄の先頭を想定（末尾でも可、要相談）
   - アンカークリック時はまずスクロールのみ。引用ポップアップ表示は非対象
   - 各レスに id="post-{no}" を付与してスクロール先とする
@@ -48,18 +49,9 @@ notes:
 - アンカーの自動補完・候補表示
 
 ## 実走結果
-
-<!-- issue-close で追記 -->
-
----
-
-## 使い方
-
-### 開始
-
-/issue-run docs/issues/open/issue#2.md
-
-### 承認後
-
-確認OKです。
-/issue-close docs/issues/open/issue#2.md
+- completed_at: 2026-06-12T15:06:00.221Z
+- branch: feature/issue-2-anchor-reply
+- commit: bac7ce0
+- commit_message: feat(post): 特定レスへのアンカー返信機能を追加
+- verification_commands:
+  - npm run verify:issue
