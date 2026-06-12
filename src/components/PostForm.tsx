@@ -1,27 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import RichTextEditor from '@/components/RichTextEditor';
+import RichTextEditor, {
+  type RichTextEditorHandle,
+} from '@/components/RichTextEditor';
 import { createPost } from '@/lib/db';
 import { isHtmlEmpty } from '@/lib/sanitize';
 
-/** スレッドへの返信投稿フォーム */
-export default function PostForm({
-  threadId,
-  onPosted,
-}: {
+/** 親（ThreadView 等）から命令的に操作するためのハンドル */
+export type PostFormHandle = {
+  /** コメント欄の先頭に `>>no` のアンカーを挿入し、フォーカスする */
+  insertAnchor: (no: number) => void;
+};
+
+type PostFormProps = {
   threadId: string;
   onPosted: () => void;
-}) {
+};
+
+/** スレッドへの返信投稿フォーム */
+const PostForm = forwardRef<PostFormHandle, PostFormProps>(function PostForm(
+  { threadId, onPosted },
+  ref
+) {
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
   // 投稿成功後にエディタDOMをクリアするための再マウント用キー
   const [editorKey, setEditorKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const editorRef = useRef<RichTextEditorHandle>(null);
+
+  useImperativeHandle(ref, () => ({
+    insertAnchor: (no: number) => {
+      editorRef.current?.insertTextAtStart(`>>${no} `);
+    },
+  }));
 
   const handleSubmit = async () => {
     if (isHtmlEmpty(body)) {
@@ -53,6 +70,7 @@ export default function PostForm({
         sx={{ bgcolor: '#fff', mb: 1 }}
       />
       <RichTextEditor
+        ref={editorRef}
         key={editorKey}
         value={body}
         onChange={setBody}
@@ -73,4 +91,6 @@ export default function PostForm({
       </Button>
     </Box>
   );
-}
+});
+
+export default PostForm;
