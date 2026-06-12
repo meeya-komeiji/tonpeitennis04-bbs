@@ -1,0 +1,9 @@
+{
+  "issuePath": "docs/issues/open/issue#80.md",
+  "issueId": "ISSUE-0080",
+  "branch": "refactor/issue-80-moral-porker-ui-modern",
+  "commands": [
+    "npm run verify:issue"
+  ],
+  "checkedAt": "2026-06-12T09:07:06.718Z"
+}

@@ -1,0 +1,8 @@
+{
+  "issuePath": "docs/issues/open/issue#80.md",
+  "issueId": "ISSUE-0080",
+  "title": "モラルポーカーのUI刷新（自作モーダルのDialog化・旧配色排除）",
+  "branch": "refactor/issue-80-moral-porker-ui-modern",
+  "commitMessage": "refactor(moral): モラルポーカーの自作モーダルをDialog化し旧配色を排除",
+  "startedAt": "2026-06-12T08:58:07.583Z"
+}

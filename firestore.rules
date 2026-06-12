@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// 認証なしの友人間向け掲示板（spec.md）。
+// 誰でも読み書き可能だが、最低限の妥当性チェックと削除/改ざん防止を行う。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // スレッド
+    match /threads/{threadId} {
+      allow read: if true;
+      // 新規作成: 必須フィールドと型・文字数を検証
+      allow create: if isValidThread();
+      // 返信投稿時の resCount / updatedAt 更新のみ許可（title等は不変）
+      allow update: if request.resource.data.title == resource.data.title
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.resCount is int
+                    && request.resource.data.resCount >= resource.data.resCount;
+      allow delete: if false;
+
+      // 投稿（レス）
+      match /posts/{postId} {
+        allow read: if true;
+        allow create: if isValidPost();
+        allow update, delete: if false;
+      }
+    }
+
+    function isValidThread() {
+      let d = request.resource.data;
+      return d.title is string
+        && d.title.size() >= 1 && d.title.size() <= 100
+        && d.resCount is int
+        && d.createdAt == request.time;
+    }
+
+    function isValidPost() {
+      let d = request.resource.data;
+      return d.body is string
+        && d.body.size() >= 1 && d.body.size() <= 5000
+        && d.name is string && d.name.size() <= 50
+        && d.no is int && d.no >= 1
+        && d.createdAt == request.time;
+    }
+  }
+}
