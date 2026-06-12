@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(/home/meeya/dev/tatamiburoportal/**)",
+      "Edit(/home/meeya/dev/tatamiburoportal/**)",
+      "Write(/home/meeya/dev/tatamiburoportal/**)",
+      "Bash(git rm *)",
+      "Bash(rm \"public/img/items/heart_kirari_rock.png:Zone.Identifier\")",
+      "Bash(git commit *)"
+    ],
+    "deny": [
+      "Read(/home/meeya/dev/tatamiburoportal/.env)",
+      "Read(/home/meeya/dev/tatamiburoportal/.env.*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/meeya/dev/tatamiburoportal/.claude/scripts/post-edit-typecheck.sh",
+            "timeout": 30,
+            "statusMessage": "TypeScript checking...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
