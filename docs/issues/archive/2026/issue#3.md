@@ -48,18 +48,9 @@ notes:
 - ログインユーザーごとのサーバー側へのテーマ保存（localStorageのみ）
 
 ## 実走結果
-
-<!-- issue-close で追記 -->
-
----
-
-## 使い方
-
-### 開始
-
-/issue-run docs/issues/open/issue#3.md
-
-### 承認後
-
-確認OKです。
-/issue-close docs/issues/open/issue#3.md
+- completed_at: 2026-06-12T15:41:01.023Z
+- branch: feature/issue-3-theme-switcher
+- commit: 217f13b
+- commit_message: feat(theme): モダン/クラシックのテーマ切り替え機能を追加
+- verification_commands:
+  - npm run verify:issue
