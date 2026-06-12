@@ -2,14 +2,10 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f0f0f0;
+  /* 背景色はMUIのテーマ（CssBaseline）に追従させる */
   -webkit-text-size-adjust: 100%;
 }
 
 * {
   box-sizing: border-box;
-}
-
-a {
-  color: #1a0dab;
 }

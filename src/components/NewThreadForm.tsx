@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import RichTextEditor from '@/components/RichTextEditor';
 import { createThread } from '@/lib/db';
 import { isHtmlEmpty } from '@/lib/sanitize';
@@ -18,6 +19,7 @@ export default function NewThreadForm() {
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const { ui } = useTheme();
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -42,7 +44,7 @@ export default function NewThreadForm() {
   return (
     <Box sx={{ maxWidth: 760 }}>
       <Typography
-        sx={{ color: '#008000', fontWeight: 'bold', fontSize: 15, mb: 1.5 }}
+        sx={{ color: ui.heading, fontWeight: 'bold', fontSize: 15, mb: 1.5 }}
       >
         - 新規スレッド作成 -
       </Typography>
@@ -52,7 +54,7 @@ export default function NewThreadForm() {
         placeholder="名前"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        sx={{ bgcolor: '#fff', mb: 1 }}
+        sx={{ bgcolor: ui.fieldBg, mb: 1 }}
       />
       <TextField
         fullWidth
@@ -60,7 +62,7 @@ export default function NewThreadForm() {
         placeholder="タイトル"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        sx={{ bgcolor: '#fff', mb: 1 }}
+        sx={{ bgcolor: ui.fieldBg, mb: 1 }}
       />
       <RichTextEditor
         value={body}
@@ -69,13 +71,17 @@ export default function NewThreadForm() {
         minHeight={140}
       />
       {error && (
-        <Box sx={{ color: '#cc0000', fontSize: 13, mb: 1 }}>{error}</Box>
+        <Box sx={{ color: ui.error, fontSize: 13, mb: 1 }}>{error}</Box>
       )}
       <Button
         variant="contained"
         onClick={handleSubmit}
         disabled={submitting}
-        sx={{ bgcolor: '#666', color: '#fff', '&:hover': { bgcolor: '#555' } }}
+        sx={{
+          bgcolor: ui.submitBg,
+          color: ui.submitColor,
+          '&:hover': { bgcolor: ui.submitBgHover },
+        }}
       >
         {submitting ? '作成中...' : '投稿する'}
       </Button>
