@@ -4,7 +4,9 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import RichTextEditor from '@/components/RichTextEditor';
 import { createPost } from '@/lib/db';
+import { isHtmlEmpty } from '@/lib/sanitize';
 
 /** スレッドへの返信投稿フォーム */
 export default function PostForm({
@@ -16,11 +18,13 @@ export default function PostForm({
 }) {
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
+  // 投稿成功後にエディタDOMをクリアするための再マウント用キー
+  const [editorKey, setEditorKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (!body.trim()) {
+    if (isHtmlEmpty(body)) {
       setError('コメントを入力してください');
       return;
     }
@@ -29,6 +33,7 @@ export default function PostForm({
     try {
       await createPost(threadId, { name, body });
       setBody('');
+      setEditorKey((k) => k + 1);
       onPosted();
     } catch (e) {
       setError(e instanceof Error ? e.message : '投稿に失敗しました');
@@ -47,14 +52,12 @@ export default function PostForm({
         onChange={(e) => setName(e.target.value)}
         sx={{ bgcolor: '#fff', mb: 1 }}
       />
-      <TextField
-        fullWidth
-        multiline
-        minRows={4}
-        placeholder="コメント"
+      <RichTextEditor
+        key={editorKey}
         value={body}
-        onChange={(e) => setBody(e.target.value)}
-        sx={{ bgcolor: '#fff', mb: 1 }}
+        onChange={setBody}
+        placeholder="コメント"
+        minHeight={100}
       />
       {error && (
         <Box sx={{ color: '#cc0000', fontSize: 13, mb: 1 }}>{error}</Box>
