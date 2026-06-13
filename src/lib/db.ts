@@ -134,6 +134,77 @@ export async function fetchPosts(threadId: string): Promise<Post[]> {
   return snap.docs.map((d) => toPost(d.id, d.data()));
 }
 
+/** 来訪者カウンターの統計（累計と本日分） */
+export type VisitStats = {
+  /** 累計来訪者数 */
+  total: number;
+  /** 本日の来訪者数 */
+  today: number;
+};
+
+/** ブラウザごとに「本日カウント済み」かを記録する localStorage キー */
+const VISIT_KEY = 'meeya-bbs-visit-date';
+
+/** 日本時間での今日の日付を YYYY-MM-DD 形式で返す */
+function todayJst(): string {
+  // en-CA ロケールは YYYY-MM-DD 形式を返す
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+/** カウンタードキュメントから表示用の統計を組み立てる（日付が変わっていれば本日分は 0） */
+function toVisitStats(data: DocumentData | undefined, today: string): VisitStats {
+  const total = typeof data?.total === 'number' ? data.total : 0;
+  const sameDay = data?.date === today;
+  const todayCount = sameDay && typeof data?.today === 'number' ? data.today : 0;
+  return { total, today: todayCount };
+}
+
+/**
+ * 来訪を記録して最新の統計を返す。
+ * 同一ブラウザからの当日2回目以降はカウントせず、現在値の読み取りのみ行う
+ * （リロードのたびに増えないよう、1日1人としてカウントする）。
+ */
+export async function recordVisit(): Promise<VisitStats> {
+  const today = todayJst();
+  const ref = doc(db, 'counters', 'visits');
+
+  let alreadyCounted = false;
+  try {
+    alreadyCounted = window.localStorage.getItem(VISIT_KEY) === today;
+  } catch {
+    // localStorage が使えない環境ではカウントする
+  }
+
+  if (alreadyCounted) {
+    const snap = await getDoc(ref);
+    return toVisitStats(snap.exists() ? snap.data() : undefined, today);
+  }
+
+  const stats = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : undefined;
+    const total = (typeof data?.total === 'number' ? data.total : 0) + 1;
+    const sameDay = data?.date === today;
+    const todayCount =
+      (sameDay && typeof data?.today === 'number' ? data.today : 0) + 1;
+    tx.set(ref, { total, today: todayCount, date: today });
+    return { total, today: todayCount };
+  });
+
+  try {
+    window.localStorage.setItem(VISIT_KEY, today);
+  } catch {
+    // 保存できなくてもカウント自体は成立しているので無視
+  }
+
+  return stats;
+}
+
 /** 新規スレッド作成（1レス目を同時に作成）。作成したスレッドIDを返す */
 export async function createThread(input: {
   title: string;

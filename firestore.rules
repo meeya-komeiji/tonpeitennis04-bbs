@@ -25,6 +25,23 @@ service cloud.firestore {
       }
     }
 
+    // 来訪者カウンター（counters/visits）。誰でも読めて、増加方向の更新のみ許可。
+    match /counters/{counterId} {
+      allow read: if true;
+      allow create: if isValidCounter() && request.resource.data.total >= 1;
+      // total は減らせない（巻き戻し防止）。today/date は日付切り替えでリセットされ得る
+      allow update: if isValidCounter()
+                    && request.resource.data.total >= resource.data.total;
+      allow delete: if false;
+    }
+
+    function isValidCounter() {
+      let d = request.resource.data;
+      return d.total is int && d.total >= 0
+        && d.today is int && d.today >= 0
+        && d.date is string;
+    }
+
     function isValidThread() {
       let d = request.resource.data;
       return d.title is string

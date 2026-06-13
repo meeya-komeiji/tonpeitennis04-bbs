@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Header from '@/components/Header';
+import VisitCounter from '@/components/VisitCounter';
 import Panel from '@/components/Panel';
 import ThreadList from '@/components/ThreadList';
 import ThreadPreview from '@/components/ThreadPreview';
@@ -30,6 +31,7 @@ export default function HomePage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 2 }}>
+      <VisitCounter />
       <Header />
       {loading ? (
         <Panel>
