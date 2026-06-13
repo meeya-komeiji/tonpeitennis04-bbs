@@ -7,6 +7,8 @@ import { useTheme } from '@mui/material/styles';
 import { type Post } from '@/lib/db';
 import { formatDate } from '@/lib/format';
 import { sanitizeHtml } from '@/lib/sanitize';
+import { extractUrls, linkifyUrls } from '@/lib/linkify';
+import LinkPreview from './LinkPreview';
 
 /**
  * 本文中の `>>N`（アンカー）をクリック可能なリンクに変換する。
@@ -44,7 +46,12 @@ export default function PostList({
 
   return (
     <Box>
-      {posts.map((post) => (
+      {posts.map((post) => {
+        // 本文はリッチテキスト(HTML)。描画前にサニタイズしてXSSを防いだうえで、
+        // URL検出は >>N アンカーと同様に描画時に行う。
+        const safe = sanitizeHtml(post.body);
+        const urls = extractUrls(safe);
+        return (
         <Box
           key={post.id}
           id={`post-${post.no}`}
@@ -101,14 +108,27 @@ export default function PostList({
                 textDecoration: 'underline',
                 cursor: 'pointer',
               },
+              '& a.res-link': {
+                color: ui.link,
+                textDecoration: 'underline',
+                wordBreak: 'break-all',
+              },
             }}
-            // 本文はリッチテキスト(HTML)。描画時にサニタイズしてXSSを防ぎ、>>N をリンク化する
+            // >>N アンカーと http(s) URL をリンク化する（HTMLは上でサニタイズ済み）
             dangerouslySetInnerHTML={{
-              __html: linkifyAnchors(sanitizeHtml(post.body)),
+              __html: linkifyAnchors(linkifyUrls(safe)),
             }}
           />
+          {urls.length > 0 && (
+            <Box sx={{ pl: 3, pt: 0.5 }}>
+              {urls.map((url) => (
+                <LinkPreview key={url} url={url} />
+              ))}
+            </Box>
+          )}
         </Box>
-      ))}
+        );
+      })}
     </Box>
   );
 }
