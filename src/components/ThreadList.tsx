@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import { type Thread } from '@/lib/db';
@@ -24,6 +25,14 @@ export default function ThreadList({ threads }: { threads: Thread[] }) {
         <Box sx={{ fontSize: 14, lineHeight: 2 }}>
           {threads.map((t, i) => (
             <Box component="span" key={t.id}>
+              {t.dev && (
+                <Chip
+                  label="DEV"
+                  size="small"
+                  color="warning"
+                  sx={{ height: 18, fontSize: 10, fontWeight: 'bold', mr: 0.5 }}
+                />
+              )}
               <Link
                 href={`/thread?id=${t.id}`}
                 style={{ textDecoration: 'underline' }}

@@ -16,12 +16,25 @@ import { sanitizeHtml } from './sanitize';
 
 export const DEFAULT_NAME = '名無しさん';
 
+/**
+ * 開発環境専用スレッドの固定ドキュメントID（dev フラグと併せて識別に使う）。
+ * Firestore は `__.*__` 形式のIDを予約しているため、その形式は使えない。
+ */
+export const DEV_THREAD_ID = 'dev-only-thread';
+
+/** 開発環境（`npm start` / `next dev`）かどうか。本番ビルドでは false になる */
+function isDevEnv(): boolean {
+  return process.env.NODE_ENV === 'development';
+}
+
 export type Thread = {
   id: string;
   title: string;
   resCount: number;
   createdAt: Date | null;
   updatedAt: Date | null;
+  /** 開発環境専用スレッドなら true。本番では一覧表示・アクセスから除外する */
+  dev: boolean;
 };
 
 export type Post = {
@@ -56,6 +69,7 @@ function toThread(id: string, data: DocumentData): Thread {
     resCount: typeof data.resCount === 'number' ? data.resCount : 0,
     createdAt: tsToDate(data.createdAt),
     updatedAt: tsToDate(data.updatedAt),
+    dev: data.dev === true,
   };
 }
 
@@ -69,15 +83,48 @@ function toPost(id: string, data: DocumentData): Post {
   };
 }
 
-/** 更新日時の新しい順にスレッド一覧を取得 */
+/**
+ * 開発環境専用スレッドを用意する（開発環境でのみ呼ぶ）。
+ * 固定IDのスレッドが無ければ dev フラグ付きで作成する。べき等。
+ * 実体はFirestoreに置き、本番では一覧表示・アクセス時にフィルタして隠す。
+ */
+export async function ensureDevThread(): Promise<void> {
+  const threadRef = doc(db, 'threads', DEV_THREAD_ID);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(threadRef);
+    if (snap.exists()) return;
+    tx.set(threadRef, {
+      title: '開発用スレッド',
+      dev: true,
+      resCount: 1,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    const firstPostRef = doc(collection(threadRef, 'posts'));
+    tx.set(firstPostRef, {
+      no: 1,
+      name: DEFAULT_NAME,
+      body: '開発環境専用のテストスレッドです。自由に投稿して動作確認できます。',
+      createdAt: serverTimestamp(),
+    });
+  });
+}
+
+/** 更新日時の新しい順にスレッド一覧を取得。本番では開発専用スレッドを除外する */
 export async function fetchThreads(max = 100): Promise<Thread[]> {
+  // 開発環境では専用スレッドを用意してから一覧を取得する
+  if (isDevEnv()) {
+    await ensureDevThread();
+  }
   const q = query(
     collection(db, 'threads'),
     orderBy('updatedAt', 'desc'),
     limit(max)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => toThread(d.id, d.data()));
+  const threads = snap.docs.map((d) => toThread(d.id, d.data()));
+  // 本番環境では開発専用スレッドを一覧から除外する
+  return isDevEnv() ? threads : threads.filter((t) => !t.dev);
 }
 
 /** スレッドの先頭投稿＋最新 PREVIEW_RECENT 件を取得してプレビューを組み立てる */
@@ -117,11 +164,15 @@ export async function fetchThreadPreviews(max = 100): Promise<ThreadPreview[]> {
   return Promise.all(threads.map(fetchThreadPreview));
 }
 
-/** 単一スレッドを取得（存在しなければ null） */
+/** 単一スレッドを取得（存在しなければ null）。本番では開発専用スレッドへのアクセスを遮断する */
 export async function fetchThread(threadId: string): Promise<Thread | null> {
   const ref = doc(db, 'threads', threadId);
   const snap = await getDoc(ref);
-  return snap.exists() ? toThread(snap.id, snap.data()) : null;
+  if (!snap.exists()) return null;
+  const thread = toThread(snap.id, snap.data());
+  // 本番環境では開発専用スレッドに直接URLでもアクセスできないようにする
+  if (thread.dev && !isDevEnv()) return null;
+  return thread;
 }
 
 /** スレッド内の投稿をレス番号順に取得 */
@@ -168,10 +219,17 @@ function toVisitStats(data: DocumentData | undefined, today: string): VisitStats
  * 来訪を記録して最新の統計を返す。
  * 同一ブラウザからの当日2回目以降はカウントせず、現在値の読み取りのみ行う
  * （リロードのたびに増えないよう、1日1人としてカウントする）。
+ * 開発環境（ローカルホスト）ではカウントせず、現在値の読み取りのみ行う。
  */
 export async function recordVisit(): Promise<VisitStats> {
   const today = todayJst();
   const ref = doc(db, 'counters', 'visits');
+
+  // 開発環境では本番のカウンターを増やさないよう、読み取りのみ行う
+  if (isDevEnv()) {
+    const snap = await getDoc(ref);
+    return toVisitStats(snap.exists() ? snap.data() : undefined, today);
+  }
 
   let alreadyCounted = false;
   try {
