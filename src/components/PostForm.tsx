@@ -4,6 +4,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import { useTheme } from '@mui/material/styles';
 import RichTextEditor, {
   type RichTextEditorHandle,
 } from '@/components/RichTextEditor';
@@ -33,6 +34,7 @@ const PostForm = forwardRef<PostFormHandle, PostFormProps>(function PostForm(
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const editorRef = useRef<RichTextEditorHandle>(null);
+  const { ui } = useTheme();
 
   useImperativeHandle(ref, () => ({
     insertAnchor: (no: number) => {
@@ -67,7 +69,7 @@ const PostForm = forwardRef<PostFormHandle, PostFormProps>(function PostForm(
         placeholder="名前"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        sx={{ bgcolor: '#fff', mb: 1 }}
+        sx={{ bgcolor: ui.fieldBg, mb: 1 }}
       />
       <RichTextEditor
         ref={editorRef}
@@ -78,14 +80,18 @@ const PostForm = forwardRef<PostFormHandle, PostFormProps>(function PostForm(
         minHeight={100}
       />
       {error && (
-        <Box sx={{ color: '#cc0000', fontSize: 13, mb: 1 }}>{error}</Box>
+        <Box sx={{ color: ui.error, fontSize: 13, mb: 1 }}>{error}</Box>
       )}
       <Button
         variant="contained"
         color="inherit"
         onClick={handleSubmit}
         disabled={submitting}
-        sx={{ bgcolor: '#666', color: '#fff', '&:hover': { bgcolor: '#555' } }}
+        sx={{
+          bgcolor: ui.submitBg,
+          color: ui.submitColor,
+          '&:hover': { bgcolor: ui.submitBgHover },
+        }}
       >
         {submitting ? '投稿中...' : '投稿する'}
       </Button>

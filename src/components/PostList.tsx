@@ -3,6 +3,7 @@
 import { type MouseEvent } from 'react';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
+import { useTheme } from '@mui/material/styles';
 import { type Post } from '@/lib/db';
 import { formatDate } from '@/lib/format';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -29,6 +30,7 @@ export default function PostList({
   /** 「返信」クリック時にレス番号を通知する。未指定なら返信ボタンを出さない */
   onReply?: (no: number) => void;
 }) {
+  const { ui } = useTheme();
   // 本文中のアンカー（>>N）クリックで該当レスへスクロールする
   const handleBodyClick = (e: MouseEvent<HTMLElement>) => {
     const anchor = (e.target as HTMLElement).closest('a[data-anchor]');
@@ -49,16 +51,16 @@ export default function PostList({
           sx={{ mb: 2, scrollMarginTop: 8 }}
         >
           <Box sx={{ fontSize: 13 }}>
-            <Box component="span" sx={{ color: '#000' }}>
+            <Box component="span" sx={{ color: ui.meta }}>
               {post.no}：
             </Box>
-            <Box component="span" sx={{ color: '#008000', fontWeight: 'bold' }}>
+            <Box component="span" sx={{ color: ui.heading, fontWeight: 'bold' }}>
               {post.name}
             </Box>{' '}
-            <Box component="span" sx={{ color: '#000' }}>
+            <Box component="span" sx={{ color: ui.meta }}>
               {formatDate(post.createdAt)}
             </Box>{' '}
-            <Box component="span" sx={{ color: '#cc0000' }}>
+            <Box component="span" sx={{ color: ui.title }}>
               No.{post.no}
             </Box>
             {onReply && (
@@ -69,7 +71,7 @@ export default function PostList({
                   type="button"
                   onClick={() => onReply(post.no)}
                   sx={{
-                    color: '#1a0dab',
+                    color: ui.link,
                     fontSize: 13,
                     p: 0,
                     border: 0,
@@ -87,7 +89,7 @@ export default function PostList({
           <Box
             onClick={handleBodyClick}
             sx={{
-              color: '#1a0dab',
+              color: ui.body,
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
               pl: 3,
@@ -95,7 +97,7 @@ export default function PostList({
               fontSize: 14,
               lineHeight: 1.7,
               '& a.res-anchor': {
-                color: '#1a0dab',
+                color: ui.link,
                 textDecoration: 'underline',
                 cursor: 'pointer',
               },

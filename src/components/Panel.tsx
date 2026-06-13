@@ -1,9 +1,9 @@
 'use client';
 
 import Box from '@mui/material/Box';
-import { PANEL_GREEN, BORDER_GRAY } from '@/lib/theme';
+import { useTheme } from '@mui/material/styles';
 
-/** 設計画像の「緑背景＋細い枠線」のパネル枠 */
+/** 全画面共通の「パネル枠」。枠の色・角丸・影は有効なテーマに追従する */
 export default function Panel({
   children,
   sx,
@@ -11,11 +11,14 @@ export default function Panel({
   children: React.ReactNode;
   sx?: object;
 }) {
+  const theme = useTheme();
   return (
     <Box
       sx={{
-        bgcolor: PANEL_GREEN,
-        border: `1px solid ${BORDER_GRAY}`,
+        bgcolor: theme.panel.bg,
+        border: `1px solid ${theme.panel.border}`,
+        borderRadius: `${theme.panel.radius}px`,
+        boxShadow: theme.panel.shadow,
         p: 2,
         mb: 2,
         ...sx,

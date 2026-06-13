@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import PostList from '@/components/PostList';
 import PostForm, { type PostFormHandle } from '@/components/PostForm';
 import { type ThreadPreview as ThreadPreviewData } from '@/lib/db';
@@ -18,6 +19,7 @@ export default function ThreadPreview({
 }) {
   const { thread, posts, omittedAfterFirst } = preview;
   const href = `/thread?id=${thread.id}`;
+  const { ui } = useTheme();
   const postFormRef = useRef<PostFormHandle>(null);
   const handleReply = (no: number) => postFormRef.current?.insertAnchor(no);
 
@@ -26,7 +28,7 @@ export default function ThreadPreview({
       <Link href={href} style={{ textDecoration: 'none' }}>
         <Typography
           sx={{
-            color: '#cc0000',
+            color: ui.title,
             fontWeight: 'bold',
             fontSize: 17,
             mb: 2,
@@ -40,7 +42,7 @@ export default function ThreadPreview({
       {omittedAfterFirst > 0 ? (
         <>
           <PostList posts={posts.slice(0, 1)} onReply={handleReply} />
-          <Box sx={{ fontSize: 13, color: '#888', pl: 3, mb: 2 }}>
+          <Box sx={{ fontSize: 13, color: ui.muted, pl: 3, mb: 2 }}>
             （{omittedAfterFirst}件省略）
           </Box>
           <PostList posts={posts.slice(1)} onReply={handleReply} />
