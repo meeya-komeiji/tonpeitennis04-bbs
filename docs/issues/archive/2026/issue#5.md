@@ -38,18 +38,9 @@ notes:
 - 認証やアクセス権限まわりの本格的な仕組み（あくまで表示フィルタによる簡易な切り分け）
 
 ## 実走結果
-
-<!-- issue-close で追記 -->
-
----
-
-## 使い方
-
-### 開始
-
-/issue-run docs/issues/open/issue#5.md
-
-### 承認後
-
-確認OKです。
-/issue-close docs/issues/open/issue#5.md
+- completed_at: 2026-06-13T12:44:23.063Z
+- branch: feature/issue-5-dev-only-thread
+- commit: e97256d
+- commit_message: feat(thread): 開発環境でのみ表示・利用できるスレッドを追加
+- verification_commands:
+  - npm run verify:issue
